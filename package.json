@@ -1,5 +1,5 @@
 {
-  "name": "better-output",
+  "name": "vite-plugin-better-output",
   "version": "1.0.0",
   "description": "Better directory structure",
   "main": "index.js",
