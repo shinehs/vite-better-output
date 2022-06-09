@@ -11,6 +11,7 @@ const jsReg = `\\.js$`;
 const jscssReg = `\\.(js|css)$`;
 const fontReg = `(ttf|woff|woff2|eot)$`;
 const imgReg = `(png|jpg|jpeg|webp|gif)`;
+const fileTypeRef = /(?=\/).*(png|jpg|jpeg|webp|gif|svg|ttf|woff|woff2|eot)/i;
 
 const allTypeReg = `^\\w+(\?=\/)`;
 
