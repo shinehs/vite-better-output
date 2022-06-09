@@ -10,8 +10,9 @@
     - - js
     - index.html
 使用方式/通用配置
+yarn add vite-plugin-better-output
 ```js
-import betterOutput from 'vite-better-output'
+import betterOutput from 'vite-plugin-better-output'
 
 return defineConfig({
     base: './',
