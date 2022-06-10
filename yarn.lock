@@ -763,11 +763,6 @@ util-deprecate@^1.0.2:
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
 
-vite-plugin-better-output@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/vite-plugin-better-output/-/vite-plugin-better-output-1.0.2.tgz#d4782b1aeb673935bfde2004ddb43aa7ec0ebdce"
-  integrity sha512-LZrhrXYBddh5DHw0kIz+/T3XwvLhHzv3rhTcsShz0sirQfFO4DXJ8VuluWpHumDpelY0CS2LdQ89XSLb/UEong==
-
 yaml@^1.10.2:
   version "1.10.2"
   resolved "https://registry.yarnpkg.com/yaml/-/yaml-1.10.2.tgz#2301c5ffbf12b467de8da2333a459e29e7920e4b"
