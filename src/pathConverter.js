@@ -39,12 +39,15 @@ export const patchPath = (code, opts) => {
   return postcss.parse(postCssAST).source.input.css.toString();
 };
 
-export const buildOutPutPath = (fileName, opts) => {
+export const buildOutPutPath = (bundle, opts) => {
+  const { fileName, viteMetadata } = bundle;
   const { js, css, img, font } = opts;
   let res = '';
+
   if (new RegExp(jscssReg, 'i').test(fileName)) {
-    res = fileName.replace(new RegExp(allTypeReg, 'i'), ($1) =>
-      (new RegExp(jsReg, 'i').test(fileName) ? js : css) || $1
+    res = fileName.replace(
+      new RegExp(allTypeReg, 'i'),
+      ($1) => (new RegExp(jsReg, 'i').test(fileName) ? js : css) || $1
     );
   } else if (new RegExp(imgReg, 'i').test(fileName)) {
     res = fileName.replace(new RegExp(allTypeReg, 'i'), ($1) => img || $1);
