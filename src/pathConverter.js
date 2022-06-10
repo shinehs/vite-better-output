@@ -56,3 +56,20 @@ export const buildOutPutPath = (bundle, opts) => {
   }
   return res;
 };
+export const rebuildChunkAssets = (viteMetadata, configCssPath) => {
+  const { importedAssets = new Set([]), importedCss = new Set([]) } = viteMetadata;
+  const assetsArr = [];
+  const cssArr = [];
+  importedAssets.forEach((value) => {
+    assetsArr.push(value.replace(new RegExp(allTypeReg, 'i'), configCssPath));
+  });
+  importedCss.forEach((value) => {
+    cssArr.push(value.replace(new RegExp(allTypeReg, 'i'), configCssPath));
+  });
+  viteMetadata.importedAssets = new Set(assetsArr);
+  viteMetadata.importedCss = new Set(cssArr);
+  return {
+    importedAssets: new Set(assetsArr),
+    importedCss: new Set(cssArr)
+  }
+};

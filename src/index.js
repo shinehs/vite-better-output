@@ -1,14 +1,13 @@
-import { patchPath, buildOutPutPath } from './pathConverter';
+import { patchPath, buildOutPutPath, rebuildChunkAssets } from './pathConverter';
 
 const fs = require('fs');
-const path = require('path');
 
 const pluginName = 'vite-better-output';
-const chunkFileReg = `\\.js$`
 const styleFileReg = `\\.(css)$`;
 const defHTMLName = 'index.html';
+const imgExtensions = /\.(png|jpg|jpeg|gif|svg)$/;
+const viteAssetsReg = /__VITE_ASSET__(\w*)__/
 
-const allTypeReg = `^\\w+(\?=\/)`;
 const defConfig = {
   js: 'js',
   css: 'css',
@@ -20,37 +19,40 @@ function betterOutput(options) {
   const { css: configCssPath, js ,img } = opts;
   return {
     name: pluginName,
+    transform(code, id){
+      // 对模块中手动引入的图片等资源做重新匹配
+      if (imgExtensions.test(id) && viteAssetsReg.test(code)) {
+        const hash = code.match(new RegExp(viteAssetsReg,'i'))[1];
+        const fileName = id.match(new RegExp(/[^\/]*.(png|jpg|jpeg|gif|svg)$/,'i'))[0]
+        const newFileName = fileName.replace(new RegExp(/(.*).(png|jpg|jpeg|gif|svg)$/,'i'), ($1,$2,$3)=>{
+          return `${$2}.${hash}.${$3}`
+        })
+        return `export default "./${img}/${newFileName}"`
+      }
+    },
     outputOptions(outputOptions) {
+      // 重置配置，否则动态模块的mapping会错误
       return Object.assign(outputOptions, {
         chunkFileNames: 'js/[name]-[hash].js',
         entryFileNames: 'js/[name]-[hash].js'
       })
     },
- 
     generateBundle(_, bundle) {
       Object.keys(bundle).forEach((id) => {
         const replacementFileName = buildOutPutPath(
           bundle[id],
           opts
         );
-
         bundle[id].fileName = replacementFileName;
         
-        // 异步模块
+        // 异步模块资源路径
         if (bundle[id].isEntry || bundle[id].isDynamicEntry) {
-          const {importedAssets = new Set([]), importedCss = new Set([])} = bundle[id].viteMetadata
-          const assetsArr = [];
-          const cssArr = []
-          importedAssets.forEach(value => {
-            assetsArr.push(value.replace(new RegExp(allTypeReg, 'i'), configCssPath))
-          })
-          importedCss.forEach(value => {
-            cssArr.push(value.replace(new RegExp(allTypeReg, 'i'), configCssPath))
-          })
-          bundle[id].viteMetadata.importedAssets = new Set(assetsArr)
-          bundle[id].viteMetadata.importedCss = new Set(cssArr)
+          const {importedAssets, importedCss} = rebuildChunkAssets(bundle[id].viteMetadata,configCssPath)
+          bundle[id].viteMetadata.importedAssets = importedAssets
+          bundle[id].viteMetadata.importedCss = importedCss
         }
-        
+
+        // css文件处理
         if (new RegExp(styleFileReg, 'i').test(id)) {
           const replacementStylesCode = patchPath(bundle[id].source, opts);
           bundle[id].source = replacementStylesCode;
