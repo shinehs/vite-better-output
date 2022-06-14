@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-better-output",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Better directory structure",
   "main": "index.js",
   "module": "index.es.js",
@@ -30,6 +30,5 @@
     "rollup-plugin-postcss": "^4.0.2"
   },
   "dependencies": {
-    "vite-plugin-better-output": "1.0.2"
   }
 }
