@@ -1,6 +1,6 @@
 {
-  "name": "vite-plugin-better-output",
-  "version": "1.0.8",
+  "name": "@lizhife/vite-output",
+  "version": "1.0.7",
   "description": "Better directory structure",
   "main": "index.js",
   "module": "index.es.js",
@@ -29,6 +29,5 @@
     "rollup": "^2.75.6",
     "rollup-plugin-postcss": "^4.0.2"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

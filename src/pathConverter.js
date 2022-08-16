@@ -57,7 +57,8 @@ export const buildOutPutPath = (bundle, opts) => {
   return res;
 };
 export const rebuildChunkAssets = (viteMetadata, configCssPath) => {
-  const { importedAssets = new Set([]), importedCss = new Set([]) } = viteMetadata;
+  const { importedAssets = new Set([]), importedCss = new Set([]) } =
+    viteMetadata;
   const assetsArr = [];
   const cssArr = [];
   importedAssets.forEach((value) => {
@@ -71,5 +72,22 @@ export const rebuildChunkAssets = (viteMetadata, configCssPath) => {
   return {
     importedAssets: new Set(assetsArr),
     importedCss: new Set(cssArr)
+  };
+};
+
+export const loaderConverter = (str) => {
+  const reg = /\.\/[^>]+\.*\.css?/g;
+  let pos = 0;
+  let current;
+  let arr = [];
+  while ((current = reg.exec(str))) {
+    let [matchUrl, g] = current;
+
+    let last = reg.lastIndex - matchUrl.length;
+    arr.push(str.slice(pos, last));
+    pos = reg.lastIndex;
+    arr.push(matchUrl.replace(/assets/, 'css'));
   }
+  arr.push(str.slice(pos));
+  return arr.join('');
 };

@@ -61,7 +61,8 @@ const buildOutPutPath = (bundle, opts) => {
   return res;
 };
 const rebuildChunkAssets = (viteMetadata, configCssPath) => {
-  const { importedAssets = new Set([]), importedCss = new Set([]) } = viteMetadata;
+  const { importedAssets = new Set([]), importedCss = new Set([]) } =
+    viteMetadata;
   const assetsArr = [];
   const cssArr = [];
   importedAssets.forEach((value) => {
@@ -75,14 +76,31 @@ const rebuildChunkAssets = (viteMetadata, configCssPath) => {
   return {
     importedAssets: new Set(assetsArr),
     importedCss: new Set(cssArr)
+  };
+};
+
+const loaderConverter = (str) => {
+  const reg = /\.\/[^>]+\.*\.css?/g;
+  let pos = 0;
+  let current;
+  let arr = [];
+  while ((current = reg.exec(str))) {
+    let [matchUrl, g] = current;
+
+    let last = reg.lastIndex - matchUrl.length;
+    arr.push(str.slice(pos, last));
+    pos = reg.lastIndex;
+    arr.push(matchUrl.replace(/assets/, 'css'));
   }
+  arr.push(str.slice(pos));
+  return arr.join('');
 };
 
 const fs = require('fs');
+const path = require('path');
 
 const pluginName = 'vite-better-output';
 const styleFileReg = `\\.(css)$`;
-const defHTMLName = 'index.html';
 const imgExtensions = /\.(png|jpg|jpeg|gif|svg)$/;
 const viteAssetsReg = /__VITE_ASSET__(\w*)__/;
 
@@ -94,18 +112,23 @@ const defConfig = {
 
 function betterOutput(options) {
   const opts = Object.assign(defConfig, options);
-  const { css: configCssPath, js ,img } = opts;
+  const { css: configCssPath, js, img } = opts;
   return {
     name: pluginName,
-    transform(code, id){
+    transform(code, id) {
       // 对模块中手动引入的图片等资源做重新匹配
       if (imgExtensions.test(id) && viteAssetsReg.test(code)) {
-        const hash = code.match(new RegExp(viteAssetsReg,'i'))[1];
-        const fileName = id.match(new RegExp(/[^\/]*.(png|jpg|jpeg|gif|svg)$/,'i'))[0];
-        const newFileName = fileName.replace(new RegExp(/(.*).(png|jpg|jpeg|gif|svg)$/,'i'), ($1,$2,$3)=>{
-          return `${$2}.${hash}.${$3}`
-        });
-        return `export default "./${img}/${newFileName}"`
+        const hash = code.match(new RegExp(viteAssetsReg, 'i'))[1];
+        const fileName = id.match(
+          new RegExp(/[^\/]*.(png|jpg|jpeg|gif|svg)$/, 'i')
+        )[0];
+        const newFileName = fileName.replace(
+          new RegExp(/(.*).(png|jpg|jpeg|gif|svg)$/, 'i'),
+          ($1, $2, $3) => {
+            return `${$2}.${hash}.${$3}`;
+          }
+        );
+        return `export default "./${img}/${newFileName}"`;
       }
     },
     outputOptions(outputOptions) {
@@ -113,19 +136,19 @@ function betterOutput(options) {
       return Object.assign(outputOptions, {
         chunkFileNames: 'js/[name]-[hash].js',
         entryFileNames: 'js/[name]-[hash].js'
-      })
+      });
     },
     generateBundle(_, bundle) {
       Object.keys(bundle).forEach((id) => {
-        const replacementFileName = buildOutPutPath(
-          bundle[id],
-          opts
-        );
+        const replacementFileName = buildOutPutPath(bundle[id], opts);
         bundle[id].fileName = replacementFileName;
-        
+
         // 异步模块资源路径
         if (bundle[id].isEntry || bundle[id].isDynamicEntry) {
-          const {importedAssets, importedCss} = rebuildChunkAssets(bundle[id].viteMetadata,configCssPath);
+          const { importedAssets, importedCss } = rebuildChunkAssets(
+            bundle[id].viteMetadata,
+            configCssPath
+          );
           bundle[id].viteMetadata.importedAssets = importedAssets;
           bundle[id].viteMetadata.importedCss = importedCss;
         }
@@ -144,14 +167,14 @@ function betterOutput(options) {
      */
     writeBundle(options, bundle) {
       const { dir } = options;
-      const fileContent = fs.readFileSync(`${dir}/index.html`, 'utf-8');
-      const data = fileContent.replace(
-        /.(\/assets)\/(.*.css)/,
-        ($1, $2, $3) => {
-          return `./${configCssPath}/${$3}`;
+      fs.readdirSync(dir).forEach((file) => {
+        const pathname = path.join(dir, file);
+        if (!fs.statSync(pathname).isDirectory() && file.endsWith('.html')) {
+          const fileContent = fs.readFileSync(pathname, 'utf-8');
+          const htmlStr = loaderConverter(fileContent);
+          fs.writeFileSync(pathname, htmlStr, 'utf-8');
         }
-      );
-      fs.writeFileSync(`${dir}/${defHTMLName}`, data, 'utf-8');
+      });
     }
   };
 }
